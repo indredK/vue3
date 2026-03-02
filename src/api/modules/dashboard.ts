@@ -1,62 +1,92 @@
-import { get, post, del, put } from '@/api/axios'
-import type { PageResult, PageParams } from '@/types/common'
+import request from '@/utils/request'
+import type { Dashboard, Widget, DashboardStatistics } from '@/types/dashboard'
 
-export interface Dashboard {
-  id: number
-  name: string
-  description?: string
-  layout: Widget[]
-  status: number
-  createdBy?: number
-  createdAt: string
-  updatedAt?: string
+export interface DashboardListParams {
+  page: number
+  size: number
 }
 
-export interface Widget {
-  id: string
-  type: 'card' | 'line' | 'bar' | 'pie' | 'table'
-  title: string
-  x: number
-  y: number
-  w: number
-  h: number
-  config: WidgetConfig
+export interface DashboardListResponse {
+  list: Dashboard[]
+  total: number
+  page: number
+  size: number
 }
 
-export interface WidgetConfig {
-  dataSource?: string
-  query?: Record<string, any>
-  chartType?: string
-  colors?: string[]
-  showTitle?: boolean
-  refreshInterval?: number
+export function getDashboardListApi(params: DashboardListParams) {
+  return request<DashboardListResponse>({
+    url: '/dashboard/list',
+    method: 'get',
+    params
+  })
 }
 
-export interface DashboardQueryParams extends PageParams {
-  keyword?: string
-  status?: number
+export function getDashboardDetailApi(id: number) {
+  return request<Dashboard>({
+    url: `/dashboard/${id}`,
+    method: 'get'
+  })
 }
 
-export function getDashboardList(params: DashboardQueryParams) {
-  return get<PageResult<Dashboard>>('/dashboard/list', params)
+export function createDashboardApi(data: Partial<Dashboard>) {
+  return request<Dashboard>({
+    url: '/dashboard',
+    method: 'post',
+    data
+  })
 }
 
-export function getDashboardDetail(id: number) {
-  return get<Dashboard>(`/dashboard/${id}`)
+export function updateDashboardApi(id: number, data: Partial<Dashboard>) {
+  return request<Dashboard>({
+    url: `/dashboard/${id}`,
+    method: 'put',
+    data
+  })
 }
 
-export function createDashboard(data: Partial<Dashboard>) {
-  return post<Dashboard>('/dashboard', data)
+export function deleteDashboardApi(id: number) {
+  return request({
+    url: `/dashboard/${id}`,
+    method: 'delete'
+  })
 }
 
-export function updateDashboard(data: Partial<Dashboard>) {
-  return put<Dashboard>(`/dashboard/${data.id}`, data)
+export function getDashboardStatisticsApi(params?: { startDate?: string; endDate?: string }) {
+  return request<DashboardStatistics>({
+    url: '/dashboard/statistics',
+    method: 'get',
+    params
+  })
 }
 
-export function deleteDashboard(id: number) {
-  return del<void>(`/dashboard/${id}`)
+export function addWidgetApi(dashboardId: number, widget: Widget) {
+  return request({
+    url: `/dashboard/${dashboardId}/widget`,
+    method: 'post',
+    data: widget
+  })
 }
 
-export function getWidgetData(widgetId: string, config: WidgetConfig) {
-  return get<any>(`/dashboard/widget/${widgetId}/data`, config)
+export function updateWidgetApi(dashboardId: number, widgetId: number, widget: Widget) {
+  return request({
+    url: `/dashboard/${dashboardId}/widget/${widgetId}`,
+    method: 'put',
+    data: widget
+  })
+}
+
+export function deleteWidgetApi(dashboardId: number, widgetId: number) {
+  return request({
+    url: `/dashboard/${dashboardId}/widget/${widgetId}`,
+    method: 'delete'
+  })
+}
+
+export function exportDashboardApi(dashboardId: number, format: 'pdf' | 'png') {
+  return request({
+    url: `/dashboard/${dashboardId}/export`,
+    method: 'get',
+    params: { format },
+    responseType: 'blob'
+  })
 }

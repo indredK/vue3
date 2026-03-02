@@ -1,48 +1,89 @@
-import { get, del } from '@/api/axios'
-import type { PageResult, PageParams } from '@/types/common'
+import request from '@/utils/request'
+import type { AuditLog, AuditLogDetail, LogRetentionPolicy } from '@/types/auditLog'
 
-export interface AuditLog {
-  id: number
-  userId: number
-  userName: string
-  module: string
-  operation: string
-  method: string
-  url: string
-  ip: string
-  location?: string
-  params?: Record<string, any>
-  result?: string
-  status: number
-  duration?: number
-  errorMessage?: string
-  createdAt: string
-}
-
-export interface AuditLogQueryParams extends PageParams {
-  userId?: number
+export interface AuditLogListParams {
+  page: number
+  size: number
+  keyword?: string
+  username?: string
   module?: string
   operation?: string
-  status?: number
   startDate?: string
   endDate?: string
-  keyword?: string
+  status?: number
 }
 
-export function getAuditLogList(params: AuditLogQueryParams) {
-  return get<PageResult<AuditLog>>('/audit/log/list', params)
+export interface AuditLogListResponse {
+  list: AuditLog[]
+  total: number
+  page: number
+  size: number
 }
 
-export function getAuditLogDetail(id: number) {
-  return get<AuditLog>(`/audit/log/${id}`)
+export function getAuditLogListApi(params: AuditLogListParams) {
+  return request<AuditLogListResponse>({
+    url: '/audit/log/list',
+    method: 'get',
+    params
+  })
 }
 
-export function exportAuditLogs(params: AuditLogQueryParams) {
-  return get<Blob>('/audit/log/export', params, {
+export function getAuditLogDetailApi(id: number) {
+  return request<AuditLogDetail>({
+    url: `/audit/log/${id}`,
+    method: 'get'
+  })
+}
+
+export function exportAuditLogsApi(params: AuditLogListParams, format: 'csv' | 'excel') {
+  return request({
+    url: '/audit/log/export',
+    method: 'get',
+    params: { ...params, format },
     responseType: 'blob'
   })
 }
 
-export function cleanAuditLogs(days: number) {
-  return del<void>('/audit/log/clean', { days })
+export function getLogStatisticsApi() {
+  return request<{
+    totalCount: number
+    todayCount: number
+    errorCount: number
+    moduleDistribution: { module: string; count: number }[]
+    dailyTrend: { date: string; count: number }[]
+  }>({
+    url: '/audit/log/statistics',
+    method: 'get'
+  })
+}
+
+export function getRetentionPolicyApi() {
+  return request<LogRetentionPolicy>({
+    url: '/audit/log/policy',
+    method: 'get'
+  })
+}
+
+export function updateRetentionPolicyApi(data: Partial<LogRetentionPolicy>) {
+  return request({
+    url: '/audit/log/policy',
+    method: 'put',
+    data
+  })
+}
+
+export function cleanOldLogsApi(days: number) {
+  return request({
+    url: '/audit/log/clean',
+    method: 'post',
+    data: { days }
+  })
+}
+
+export function archiveLogsApi(startDate: string, endDate: string) {
+  return request({
+    url: '/audit/log/archive',
+    method: 'post',
+    data: { startDate, endDate }
+  })
 }

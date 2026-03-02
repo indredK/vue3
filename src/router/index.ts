@@ -177,6 +177,17 @@ const asyncRoutes: RouteRecordRaw[] = [
           roles: ['admin'],
           permissions: ['system:tenant:list']
         }
+      },
+      {
+        path: '/system/audit-log',
+        name: 'AuditLog',
+        component: () => import('@/views/audit-log/index.vue'),
+        meta: {
+          title: '审计日志',
+          icon: 'el-icon-Document',
+          roles: ['admin'],
+          permissions: ['system:audit:list']
+        }
       }
     ]
   }
