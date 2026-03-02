@@ -4,6 +4,7 @@ import { useRouter, useRoute, RouterView } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user'
 import { useNotificationStore } from '@/stores/notification'
+import { useThemeStore, type ThemeColor } from '@/stores/theme'
 import * as elementIcons from '@element-plus/icons-vue'
 
 const { t, locale } = useI18n()
@@ -11,6 +12,7 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const notificationStore = useNotificationStore()
+const themeStore = useThemeStore()
 
 const isCollapse = ref(false)
 const activeMenu = ref('')
@@ -59,6 +61,14 @@ const switchLanguage = () => {
   const newLocale = locale.value === 'zh-CN' ? 'en-US' : 'zh-CN'
   locale.value = newLocale
   localStorage.setItem('locale', newLocale)
+}
+
+const handleThemeChange = (command: string) => {
+  if (command === 'light' || command === 'dark') {
+    themeStore.setMode(command)
+  } else {
+    themeStore.setPrimaryColor(command as ThemeColor)
+  }
 }
 
 const handleLogout = async () => {
@@ -235,6 +245,54 @@ const getTitle = (title?: unknown): string => {
               </div>
             </el-popover>
             
+            <el-dropdown @command="handleThemeChange">
+              <span class="language-switch">
+                <el-icon><element-icon-Brush /></el-icon>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item disabled>
+                    <span style="font-weight: bold">主题模式</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item command="light" :disabled="themeStore.mode === 'light'">
+                    <el-icon><element-icon-Sunny /></el-icon>
+                    浅色模式
+                  </el-dropdown-item>
+                  <el-dropdown-item command="dark" :disabled="themeStore.mode === 'dark'">
+                    <el-icon><element-icon-Moon /></el-icon>
+                    深色模式
+                  </el-dropdown-item>
+                  <el-dropdown-item divided disabled>
+                    <span style="font-weight: bold">主题颜色</span>
+                  </el-dropdown-item>
+                  <el-dropdown-item command="default">
+                    <span class="color-dot" style="background: #409eff"></span>
+                    蓝色
+                  </el-dropdown-item>
+                  <el-dropdown-item command="blue">
+                    <span class="color-dot" style="background: #1890ff"></span>
+                    藏青
+                  </el-dropdown-item>
+                  <el-dropdown-item command="green">
+                    <span class="color-dot" style="background: #52c41a"></span>
+                    绿色
+                  </el-dropdown-item>
+                  <el-dropdown-item command="purple">
+                    <span class="color-dot" style="background: #722ed1"></span>
+                    紫色
+                  </el-dropdown-item>
+                  <el-dropdown-item command="red">
+                    <span class="color-dot" style="background: #f5222d"></span>
+                    红色
+                  </el-dropdown-item>
+                  <el-dropdown-item command="orange">
+                    <span class="color-dot" style="background: #fa8c16"></span>
+                    橙色
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+            
             <el-dropdown @command="switchLanguage">
               <span class="language-switch">
                 <el-icon><element-icon-Language /></el-icon>
@@ -392,6 +450,15 @@ const getTitle = (title?: unknown): string => {
 
 .language-switch:hover {
   background: #f5f7fa;
+}
+
+.color-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 .user-info {
