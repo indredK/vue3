@@ -3,32 +3,57 @@ import { ref, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadAsyncRoutes } from '@/router'
 
-interface UserInfo {
+export interface User {
   id: number
   username: string
   nickname: string
   avatar: string
   email: string
   phone: string
+  status: number
   roles: string[]
   permissions: string[]
+  departmentId?: number
+  departmentName?: string
+  createdAt: string
+  updatedAt?: string
+  lastLogin?: string
+}
+
+export interface Tenant {
+  id: number
+  name: string
+  code: string
+  status: number
+  quota: {
+    maxUsers: number
+    maxAssets: number
+    maxOrders: number
+  }
+  config: {
+    themeColor: string
+    logo: string
+    enabledModules: string[]
+  }
 }
 
 export const useUserStore = defineStore('user', () => {
   const router = useRouter()
   const token = ref(localStorage.getItem('token') || '')
-  const userInfo = shallowRef<UserInfo | null>(null)
+  const userInfo = shallowRef<User | null>(null)
   const permissions = ref<string[]>([])
   const roles = ref<string[]>([])
-  const routesLoaded = ref(false)  // 添加路由加载标记
-  
-  const mockUserData: UserInfo = {
+  const routesLoaded = ref(false)
+  const currentTenant = ref<Tenant | null>(null)
+
+  const mockUserData: User = {
     id: 1,
     username: 'admin',
     nickname: '系统管理员',
     avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-    email: 'admin@batterybank.com',
+    email: 'admin@universalasset.com',
     phone: '13800138000',
+    status: 1,
     roles: ['admin'],
     permissions: [
       'system:user:list',
@@ -39,11 +64,49 @@ export const useUserStore = defineStore('user', () => {
       'system:role:add',
       'system:role:edit',
       'system:role:delete',
+      'system:role:permission',
       'system:permission:list',
+      'system:tenant:list',
+      'system:tenant:add',
+      'system:tenant:edit',
+      'system:tenant:delete',
+      'system:tenant:quota',
+      'system:tenant:config',
       'device:list',
-      'battery:list',
-      'order:list'
-    ]
+      'device:add',
+      'device:edit',
+      'device:delete',
+      'asset:list',
+      'asset:add',
+      'asset:edit',
+      'asset:delete',
+      'order:list',
+      'order:add',
+      'order:edit',
+      'order:delete',
+      'asset:type:list',
+      'asset:type:add',
+      'asset:type:edit',
+      'asset:type:delete'
+    ],
+    createdAt: '2024-01-01 00:00:00'
+  }
+
+  const mockTenant: Tenant = {
+    id: 1,
+    name: '默认租户',
+    code: 'default',
+    status: 1,
+    quota: {
+      maxUsers: 100,
+      maxAssets: 1000,
+      maxOrders: 5000
+    },
+    config: {
+      themeColor: '#409eff',
+      logo: '',
+      enabledModules: ['device', 'asset', 'order']
+    }
   }
 
   async function login(username: string, password: string) {
@@ -66,6 +129,8 @@ export const useUserStore = defineStore('user', () => {
         userInfo.value = mockUserData
         permissions.value = mockUserData.permissions
         roles.value = mockUserData.roles
+        currentTenant.value = mockTenant
+        localStorage.setItem('tenantId', String(mockTenant.id))
         resolve()
       }, 300)
     })
@@ -76,8 +141,10 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = null
     permissions.value = []
     roles.value = []
-    routesLoaded.value = false  // 重置路由加载标记
+    routesLoaded.value = false
+    currentTenant.value = null
     localStorage.removeItem('token')
+    localStorage.removeItem('tenantId')
     router.push('/login')
   }
 
@@ -90,16 +157,15 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function initRoutes() {
-    console.log('[User Store] initRoutes 被调用')
-    console.log('[User Store] routesLoaded:', routesLoaded.value)
     if (!routesLoaded.value) {
-      console.log('[User Store] 开始加载路由')
       await loadAsyncRoutes()
       routesLoaded.value = true
-      console.log('[User Store] 路由加载完成')
-    } else {
-      console.log('[User Store] 路由已加载，跳过')
     }
+  }
+
+  function setTenant(tenant: Tenant) {
+    currentTenant.value = tenant
+    localStorage.setItem('tenantId', String(tenant.id))
   }
 
   return {
@@ -108,11 +174,13 @@ export const useUserStore = defineStore('user', () => {
     permissions,
     roles,
     routesLoaded,
+    currentTenant,
     login,
     getUserInfo,
     logout,
     hasPermission,
     hasRole,
-    initRoutes
+    initRoutes,
+    setTenant
   }
 })

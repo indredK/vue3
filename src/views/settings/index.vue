@@ -6,8 +6,8 @@ import { ElMessage } from 'element-plus'
 const { t, locale } = useI18n()
 
 const settingsForm = reactive({
-  siteName: '电池银行资产监控平台',
-  siteDesc: 'Battery Bank Asset Management Platform',
+  siteName: '通用资产监控平台',
+  siteDesc: 'Universal Asset Management Platform',
   language: localStorage.getItem('locale') || 'zh-CN',
   theme: 'light',
   compactMode: false,

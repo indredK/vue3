@@ -2,25 +2,17 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user'
-import { 
-  Monitor, 
-  Connection, 
-  Odometer, 
-  ShoppingCart, 
-  Document, 
-  Money 
-} from '@element-plus/icons-vue'
 
 const { t } = useI18n()
 const userStore = useUserStore()
 
 const stats = ref([
-  { title: 'dashboard.totalDevices', value: '12,856', icon: Monitor, color: '#409eff', trend: '+12%' },
-  { title: 'dashboard.onlineDevices', value: '11,234', icon: Connection, color: '#67c23a', trend: '+8%' },
-  { title: 'dashboard.totalBatteries', value: '45,678', icon: Odometer, color: '#e6a23c', trend: '+5%' },
-  { title: 'dashboard.rentingBatteries', value: '23,456', icon: ShoppingCart, color: '#f56c6c', trend: '+15%' },
-  { title: 'dashboard.todayOrders', value: '1,234', icon: Document, color: '#909399', trend: '+20%' },
-  { title: 'dashboard.revenue', value: '¥56,789', icon: Money, color: '#c71585', trend: '+18%' }
+  { title: 'dashboard.totalDevices', value: '12,856', icon: 'Monitor', color: '#409eff', trend: '+12%' },
+  { title: 'dashboard.onlineDevices', value: '11,234', icon: 'Connection', color: '#67c23a', trend: '+8%' },
+  { title: 'dashboard.totalAssets', value: '45,678', icon: 'Box', color: '#e6a23c', trend: '+5%' },
+  { title: 'dashboard.rentingAssets', value: '23,456', icon: 'ShoppingCart', color: '#f56c6c', trend: '+15%' },
+  { title: 'dashboard.todayOrders', value: '1,234', icon: 'Document', color: '#909399', trend: '+20%' },
+  { title: 'dashboard.revenue', value: '¥56,789', icon: 'Money', color: '#c71585', trend: '+18%' }
 ])
 
 const deviceTrend = ref([
@@ -34,11 +26,11 @@ const deviceTrend = ref([
 ])
 
 const recentOrders = ref([
-  { id: 'ORD001', user: '张三', battery: 'B-1000ah', amount: '¥99.00', status: 'completed', time: '2024-01-15 10:30' },
-  { id: 'ORD002', user: '李四', battery: 'B-2000ah', amount: '¥199.00', status: 'processing', time: '2024-01-15 10:25' },
-  { id: 'ORD003', user: '王五', battery: 'B-500ah', amount: '¥59.00', status: 'pending', time: '2024-01-15 10:20' },
-  { id: 'ORD004', user: '赵六', battery: 'B-1500ah', amount: '¥149.00', status: 'completed', time: '2024-01-15 10:15' },
-  { id: 'ORD005', user: '钱七', battery: 'B-800ah', amount: '¥79.00', status: 'completed', time: '2024-01-15 10:10' }
+  { id: 'ORD001', user: '张三', asset: 'A-1000', amount: '¥99.00', status: 'completed', time: '2024-01-15 10:30' },
+  { id: 'ORD002', user: '李四', asset: 'A-2000', amount: '¥199.00', status: 'processing', time: '2024-01-15 10:25' },
+  { id: 'ORD003', user: '王五', asset: 'A-500', amount: '¥59.00', status: 'pending', time: '2024-01-15 10:20' },
+  { id: 'ORD004', user: '赵六', asset: 'A-1500', amount: '¥149.00', status: 'completed', time: '2024-01-15 10:15' },
+  { id: 'ORD005', user: '钱七', asset: 'A-800', amount: '¥79.00', status: 'completed', time: '2024-01-15 10:10' }
 ])
 
 const getStatusType = (status: string) => {
@@ -103,7 +95,7 @@ const getStatusType = (status: string) => {
       
       <el-col :xs="24" :lg="8">
         <div class="card-base">
-          <h3>电池状态分布</h3>
+          <h3>资产状态分布</h3>
           <div class="pie-chart-placeholder">
             <div class="pie-circle">
               <div class="pie-segment available"></div>
@@ -117,11 +109,11 @@ const getStatusType = (status: string) => {
               </div>
               <div class="legend-row">
                 <span class="dot renting"></span>
-                <span>租赁中 ({{ Math.round(45678 * 0.5) }})</span>
+                <span>使用中 ({{ Math.round(45678 * 0.5) }})</span>
               </div>
               <div class="legend-row">
                 <span class="dot charging"></span>
-                <span>充电中 ({{ Math.round(45678 * 0.1) }})</span>
+                <span>闲置中 ({{ Math.round(45678 * 0.1) }})</span>
               </div>
             </div>
           </div>
@@ -136,7 +128,7 @@ const getStatusType = (status: string) => {
           <el-table :data="recentOrders" style="width: 100%">
             <el-table-column prop="id" label="订单编号" width="120" />
             <el-table-column prop="user" label="用户" width="100" />
-            <el-table-column prop="battery" label="电池型号" width="120" />
+            <el-table-column prop="asset" label="资产型号" width="120" />
             <el-table-column prop="amount" label="金额" width="100" />
             <el-table-column prop="status" label="状态" width="120">
               <template #default="{ row }">

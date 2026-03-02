@@ -3,24 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute, RouterView } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user'
-import { 
-  Odometer, 
-  Fold, 
-  Expand, 
-  SwitchButton,
-  Menu,
-  DataAnalysis,
-  Setting,
-  User,
-  Lock,
-  Monitor,
-  Document,
-  Tools,
-  Connection,
-  ShoppingCart,
-  Money,
-  Switch
-} from '@element-plus/icons-vue'
+import * as elementIcons from '@element-plus/icons-vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
@@ -32,8 +15,49 @@ const activeMenu = ref('')
 
 const sidebarRoutes = computed(() => {
   const routes = router.getRoutes()
-  const layout = routes.find(r => r.name === 'Layout')
-  return layout?.children?.filter((r: any) => !r.meta?.hidden) || []
+  console.log('All routes:', routes.map(r => ({ path: r.path, hasChildren: !!r.children?.length })))
+  
+  // 筛选出应该显示的顶级菜单路由
+  const menuRoutes = routes.filter((r: any) => {
+    // 排除登录页和根路由
+    if (r.path === '/login' || r.path === '/') return false
+    // 排除被标记为隐藏的
+    if (r.meta?.hidden) return false
+    return true
+  })
+  
+  console.log('Menu routes:', menuRoutes.map(r => ({ path: r.path, hasChildren: !!r.children?.length })))
+  
+  // 直接使用路由中已经定义好的 children
+  const groupedRoutes = menuRoutes.map((route: any) => {
+    // 如果有 children，直接返回
+    if (route.children && route.children.length > 0) {
+      return route
+    }
+    
+    // 如果没有 children，检查是否有其他路由以其为父路径
+    const parts = route.path.split('/').filter(Boolean)
+    if (parts.length === 1) {
+      // 顶级路径，查找所有以该路径开头的子路由
+      const children = menuRoutes.filter((r: any) => {
+        const rParts = r.path.split('/').filter(Boolean)
+        return rParts.length > 1 && rParts[0] === parts[0]
+      })
+      
+      if (children.length > 0) {
+        return {
+          ...route,
+          children: children
+        }
+      }
+    }
+    
+    return route
+  })
+  
+  console.log('Grouped routes:', groupedRoutes.map(r => ({ path: r.path, hasChildren: !!r.children?.length })))
+  
+  return groupedRoutes
 })
 
 const switchLanguage = () => {
@@ -64,24 +88,13 @@ watch(() => route.path, (path) => {
   activeMenu.value = path
 })
 
-const iconMap: Record<string, any> = {
-  'el-icon-DataAnalysis': DataAnalysis,
-  'el-icon-Setting': Setting,
-  'el-icon-User': User,
-  'el-icon-Menu': Menu,
-  'el-icon-Lock': Lock,
-  'el-icon-Monitor': Monitor,
-  'el-icon-Battery': Odometer,
-  'el-icon-List': Menu,
-  'el-icon-Document': Document,
-  'el-icon-Tools': Tools,
-  'el-icon-Connection': Connection,
-  'el-icon-ShoppingCart': ShoppingCart,
-  'el-icon-Money': Money
+const getIcon = (iconName?: unknown) => {
+  const name = (typeof iconName === 'string' ? iconName : '') || 'Menu'
+  return (elementIcons as any)[name.replace('el-icon-', '')] || elementIcons.Menu
 }
 
-const getIcon = (iconName: string) => {
-  return iconMap[iconName] || Menu
+const getTitle = (title?: unknown): string => {
+  return typeof title === 'string' ? title : ''
 }
 </script>
 
@@ -90,7 +103,7 @@ const getIcon = (iconName: string) => {
     <el-container class="layout-container">
       <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar">
         <div class="logo">
-          <el-icon :size="24" class="logo-icon"><Odometer /></el-icon>
+          <el-icon :size="24" class="logo-icon"><element-icon-DataAnalysis /></el-icon>
           <span v-show="!isCollapse" class="logo-text">{{ t('layout.title') }}</span>
         </div>
         
@@ -101,24 +114,24 @@ const getIcon = (iconName: string) => {
           class="sidebar-menu"
           router
         >
-          <template v-for="item in sidebarRoutes" :key="item.path">
-            <el-menu-item v-if="!item.children || item.children.length === 0" :index="item.path">
-              <el-icon><component :is="getIcon(item.meta?.icon as string || 'Menu')" /></el-icon>
-              <template #title>{{ t((item.meta?.title as string) || '') }}</template>
+          <template v-for="item in sidebarRoutes" :key="String(item.path)">
+            <el-menu-item v-if="!item.children || item.children.length === 0" :index="String(item.path)">
+              <el-icon><component :is="getIcon(item.meta?.icon)" /></el-icon>
+              <template #title>{{ t(getTitle(item.meta?.title)) }}</template>
             </el-menu-item>
             
-            <el-sub-menu v-else :index="item.path">
+            <el-sub-menu v-else :index="String(item.path)">
               <template #title>
-                <el-icon><component :is="getIcon(item.meta?.icon as string || 'Menu')" /></el-icon>
-                <span>{{ t((item.meta?.title as string) || '') }}</span>
+                <el-icon><component :is="getIcon(item.meta?.icon)" /></el-icon>
+                <span>{{ t(getTitle(item.meta?.title)) }}</span>
               </template>
               <el-menu-item
                 v-for="child in item.children"
-                :key="child.path"
-                :index="child.path"
+                :key="String(child.path)"
+                :index="String(child.path)"
               >
-                <el-icon><component :is="getIcon(child.meta?.icon as string || 'Menu')" /></el-icon>
-                <template #title>{{ t((child.meta?.title as string) || '') }}</template>
+                <el-icon><component :is="getIcon(child.meta?.icon)" /></el-icon>
+                <template #title>{{ t(getTitle(child.meta?.title)) }}</template>
               </el-menu-item>
             </el-sub-menu>
           </template>
@@ -129,15 +142,15 @@ const getIcon = (iconName: string) => {
         <el-header class="header">
           <div class="header-left">
             <el-icon class="collapse-icon" @click="isCollapse = !isCollapse">
-              <Fold v-if="!isCollapse" />
-              <Expand v-else />
+              <element-icon-Fold v-if="!isCollapse" />
+              <element-icon-Expand v-else />
             </el-icon>
           </div>
           
           <div class="header-right">
             <el-dropdown @command="switchLanguage">
               <span class="language-switch">
-                <el-icon><Switch /></el-icon>
+                <el-icon><element-icon-Language /></el-icon>
                 <span>{{ locale === 'zh-CN' ? '中文' : 'EN' }}</span>
               </span>
             </el-dropdown>
@@ -150,7 +163,7 @@ const getIcon = (iconName: string) => {
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="logout">
-                    <el-icon><SwitchButton /></el-icon>
+                    <el-icon><element-icon-SwitchButton /></el-icon>
                     {{ t('layout.logout') }}
                   </el-dropdown-item>
                 </el-dropdown-menu>
@@ -175,7 +188,8 @@ const getIcon = (iconName: string) => {
 .sidebar {
   background: #304156;
   transition: width 0.3s;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .logo {
@@ -188,6 +202,7 @@ const getIcon = (iconName: string) => {
   color: #fff;
   font-size: 14px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .logo-icon {
@@ -197,6 +212,22 @@ const getIcon = (iconName: string) => {
 .sidebar-menu {
   border-right: none;
   background: #304156;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background: #4a5a6a;
+  border-radius: 3px;
+}
+
+.sidebar-menu::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 :deep(.el-menu) {

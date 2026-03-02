@@ -22,7 +22,7 @@ export default {
     noData: 'No Data'
   },
   layout: {
-    title: 'Battery Bank Asset Monitor',
+    title: 'Universal Asset Monitor',
     logout: 'Logout',
     switchLang: 'Switch Language'
   },
@@ -32,8 +32,9 @@ export default {
     user: 'User Management',
     role: 'Role Management',
     permission: 'Permission Management',
+    tenant: 'Tenant Management',
     device: 'Device Management',
-    battery: 'Battery Asset',
+    asset: 'Asset Management',
     order: 'Order Management',
     statistics: 'Statistics',
     settings: 'Settings'
@@ -74,6 +75,29 @@ export default {
     api: 'API',
     permissionList: 'Permission List'
   },
+  tenant: {
+    name: 'Tenant Name',
+    code: 'Tenant Code',
+    status: 'Status',
+    quota: 'Quota',
+    config: 'Config',
+    maxUsers: 'Max Users',
+    maxAssets: 'Max Assets',
+    maxOrders: 'Max Orders',
+    usedUsers: 'Used Users',
+    usedAssets: 'Used Assets',
+    usedOrders: 'Used Orders',
+    themeColor: 'Theme Color',
+    enabledModules: 'Enabled Modules',
+    tenantList: 'Tenant List',
+    addTenant: 'Add Tenant',
+    editTenant: 'Edit Tenant',
+    deleteTenant: 'Delete Tenant',
+    setQuota: 'Set Quota',
+    setConfig: 'Tenant Config',
+    enable: 'Enable',
+    disable: 'Disable'
+  },
   device: {
     id: 'Device ID',
     name: 'Device Name',
@@ -85,27 +109,27 @@ export default {
     deviceList: 'Device List',
     monitor: 'Device Monitor'
   },
-  battery: {
-    id: 'Battery ID',
+  asset: {
+    id: 'Asset ID',
     model: 'Model',
     capacity: 'Capacity',
     voltage: 'Voltage',
     current: 'Current',
-    soc: 'SOC',
-    soh: 'SOH',
-    cycleCount: 'Cycle Count',
+    soc: 'Level',
+    soh: 'Health',
+    cycleCount: 'Usage Count',
     temperature: 'Temperature',
     status: 'Status',
-    renting: 'Renting',
+    renting: 'In Use',
     available: 'Available',
-    charging: 'Charging',
-    batteryList: 'Battery Asset List'
+    charging: 'Active',
+    assetList: 'Asset List'
   },
   dashboard: {
     totalDevices: 'Total Devices',
     onlineDevices: 'Online Devices',
-    totalBatteries: 'Total Batteries',
-    rentingBatteries: 'Renting',
+    totalAssets: 'Total Assets',
+    rentingAssets: 'In Use',
     todayOrders: 'Today Orders',
     revenue: 'Today Revenue',
     deviceTrend: 'Device Trend',

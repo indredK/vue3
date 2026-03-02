@@ -22,7 +22,7 @@ export default {
     noData: '暂无数据'
   },
   layout: {
-    title: '电池银行资产监控平台',
+    title: '通用资产监控平台',
     logout: '退出登录',
     switchLang: '切换语言'
   },
@@ -32,8 +32,9 @@ export default {
     user: '用户管理',
     role: '角色管理',
     permission: '权限管理',
+    tenant: '租户管理',
     device: '设备管理',
-    battery: '电池资产管理',
+    asset: '资产管理',
     order: '订单管理',
     statistics: '数据统计',
     settings: '系统设置'
@@ -74,6 +75,29 @@ export default {
     api: '接口',
     permissionList: '权限列表'
   },
+  tenant: {
+    name: '租户名称',
+    code: '租户编码',
+    status: '状态',
+    quota: '配额',
+    config: '配置',
+    maxUsers: '用户数量',
+    maxAssets: '资产数量',
+    maxOrders: '订单数量',
+    usedUsers: '已用用户',
+    usedAssets: '已用资产',
+    usedOrders: '已用订单',
+    themeColor: '主题颜色',
+    enabledModules: '启用模块',
+    tenantList: '租户列表',
+    addTenant: '新增租户',
+    editTenant: '编辑租户',
+    deleteTenant: '删除租户',
+    setQuota: '设置配额',
+    setConfig: '租户配置',
+    enable: '启用',
+    disable: '停用'
+  },
   device: {
     id: '设备编号',
     name: '设备名称',
@@ -85,27 +109,27 @@ export default {
     deviceList: '设备列表',
     monitor: '设备监控'
   },
-  battery: {
-    id: '电池编号',
-    model: '电池型号',
+  asset: {
+    id: '资产编号',
+    model: '资产型号',
     capacity: '容量',
     voltage: '电压',
     current: '电流',
-    soc: '剩余电量',
+    soc: '剩余量',
     soh: '健康度',
-    cycleCount: '循环次数',
+    cycleCount: '使用次数',
     temperature: '温度',
-    status: '电池状态',
+    status: '资产状态',
     renting: '租赁中',
     available: '可用',
-    charging: '充电中',
-    batteryList: '电池资产列表'
+    charging: '使用中',
+    assetList: '资产列表'
   },
   dashboard: {
     totalDevices: '设备总数',
     onlineDevices: '在线设备',
-    totalBatteries: '电池总数',
-    rentingBatteries: '租赁中',
+    totalAssets: '资产总数',
+    rentingAssets: '使用中',
     todayOrders: '今日订单',
     revenue: '今日营收',
     deviceTrend: '设备趋势',

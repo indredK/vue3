@@ -34,7 +34,7 @@ http://localhost:3001/vue3-admin-platform/
 
 1. **数据看板** (`/dashboard`)
    - 设备统计
-   - 电池资产统计
+   - 资产统计
    - 订单统计
    - 数据趋势图表
 
@@ -47,9 +47,9 @@ http://localhost:3001/vue3-admin-platform/
    - 设备列表
    - 设备监控
 
-4. **电池资产管理** (`/battery/list`)
-   - 电池列表
-   - 电池状态监控
+4. **资产管理** (`/asset/list`)
+   - 资产列表
+   - 资产状态监控
 
 5. **订单管理** (`/order/list`)
    - 订单列表
@@ -111,7 +111,7 @@ pnpm lint
 - `system:role:delete` - 删除角色
 - `system:permission:list` - 查看权限列表
 - `device:list` - 查看设备列表
-- `battery:list` - 查看电池列表
+- `asset:list` - 查看资产列表
 - `order:list` - 查看订单列表
 
 ### 使用权限指令

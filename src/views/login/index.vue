@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
-import { Odometer, User as UserIcon, Lock } from '@element-plus/icons-vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -43,10 +42,10 @@ const handleLogin = async () => {
     <div class="login-box">
       <div class="login-header">
         <div class="logo">
-          <el-icon :size="40" class="logo-icon"><Odometer /></el-icon>
+          <el-icon :size="40" class="logo-icon"><element-icon-DataAnalysis /></el-icon>
           <h1>{{ t('layout.title') }}</h1>
         </div>
-        <p class="subtitle">{{ t('layout.title') || 'Battery Bank Asset Management Platform' }}</p>
+        <p class="subtitle">{{ t('layout.title') || 'Universal Asset Management Platform' }}</p>
       </div>
       
       <el-form :model="loginForm" class="login-form" @submit.prevent="handleLogin">
@@ -54,26 +53,20 @@ const handleLogin = async () => {
           <el-input
             v-model="loginForm.username"
             :placeholder="t('user.username')"
+            prefix-icon="el-icon-User"
             size="large"
-          >
-            <template #prefix>
-              <el-icon><UserIcon /></el-icon>
-            </template>
-          </el-input>
+          />
         </el-form-item>
         <el-form-item>
           <el-input
             v-model="loginForm.password"
             type="password"
             placeholder="Password"
+            prefix-icon="el-icon-Lock"
             size="large"
             show-password
             @keyup.enter="handleLogin"
-          >
-            <template #prefix>
-              <el-icon><Lock /></el-icon>
-            </template>
-          </el-input>
+          />
         </el-form-item>
         <el-form-item>
           <el-button

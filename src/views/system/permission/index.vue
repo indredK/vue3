@@ -22,7 +22,7 @@ const tableData = ref<Permission[]>([
   { id: 7, name: '角色编辑', code: 'system:role:edit', type: 'button', description: '编辑角色' },
   { id: 8, name: '角色删除', code: 'system:role:delete', type: 'button', description: '删除角色' },
   { id: 9, name: '设备查看', code: 'device:list', type: 'button', description: '查看设备列表' },
-  { id: 10, name: '电池查看', code: 'battery:list', type: 'button', description: '查看电池列表' },
+  { id: 10, name: '资产查看', code: 'asset:list', type: 'button', description: '查看资产列表' },
   { id: 11, name: '订单查看', code: 'order:list', type: 'button', description: '查看订单列表' }
 ])
 

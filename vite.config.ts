@@ -13,7 +13,7 @@ export default defineConfig({
       '@': resolve(__dirname, 'src')
     }
   },
-  base: '/',
+  base: '/vue3-admin-platform/',
   server: {
     port: 3000,
     host: true
