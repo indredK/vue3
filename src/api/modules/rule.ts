@@ -1,99 +1,101 @@
-import { get, post, del, put } from '@/api/axios'
-import type { PageResult, PageParams } from '@/types/common'
+import request from '@/utils/request'
+import type { Rule, RuleCondition, RuleAction, RuleExecutionLog } from '@/types/rule'
 
-export type TriggerType = 'data_change' | 'schedule' | 'manual'
-export type ActionType = 'update_field' | 'change_status' | 'send_notification' | 'call_api'
-
-export interface Rule {
-  id: number
-  name: string
-  code: string
-  description?: string
-  entityType: string
-  triggerType: TriggerType
-  conditions: RuleCondition[]
-  actions: RuleAction[]
-  status: number
-  createdBy?: number
-  createdAt: string
-  updatedAt?: string
-}
-
-export interface RuleCondition {
-  id?: number
-  field: string
-  operator: string
-  value: any
-  logic?: 'and' | 'or'
-  children?: RuleCondition[]
-}
-
-export interface RuleAction {
-  id?: number
-  type: ActionType
-  config: Record<string, any>
-  order: number
-}
-
-export interface RuleExecutionLog {
-  id: number
-  ruleId: number
-  ruleName: string
-  triggerType: TriggerType
-  triggerData?: Record<string, any>
-  status: 'success' | 'failed' | 'skipped'
-  inputData?: Record<string, any>
-  outputData?: Record<string, any>
-  errorMessage?: string
-  executedBy?: number
-  executedAt: string
-}
-
-export interface RuleQueryParams extends PageParams {
+export interface RuleListParams {
+  page: number
+  size: number
   keyword?: string
-  entityType?: string
-  triggerType?: TriggerType
+  triggerType?: string
   status?: number
 }
 
-export interface TestRuleParams {
-  ruleId?: number
-  conditions: RuleCondition[]
-  testData: Record<string, any>
+export interface RuleListResponse {
+  list: Rule[]
+  total: number
+  page: number
+  size: number
 }
 
-export function getRuleList(params: RuleQueryParams) {
-  return get<PageResult<Rule>>('/rule/list', params)
+export function getRuleListApi(params: RuleListParams) {
+  return request<RuleListResponse>({
+    url: '/rule/list',
+    method: 'get',
+    params
+  })
 }
 
-export function getRuleDetail(id: number) {
-  return get<Rule>(`/rule/${id}`)
+export function getRuleDetailApi(id: number) {
+  return request<Rule>({
+    url: `/rule/${id}`,
+    method: 'get'
+  })
 }
 
-export function createRule(data: Partial<Rule>) {
-  return post<Rule>('/rule', data)
+export function createRuleApi(data: Partial<Rule>) {
+  return request<Rule>({
+    url: '/rule',
+    method: 'post',
+    data
+  })
 }
 
-export function updateRule(data: Partial<Rule>) {
-  return put<Rule>(`/rule/${data.id}`, data)
+export function updateRuleApi(id: number, data: Partial<Rule>) {
+  return request<Rule>({
+    url: `/rule/${id}`,
+    method: 'put',
+    data
+  })
 }
 
-export function deleteRule(id: number) {
-  return del<void>(`/rule/${id}`)
+export function deleteRuleApi(id: number) {
+  return request({
+    url: `/rule/${id}`,
+    method: 'delete'
+  })
 }
 
-export function updateRuleStatus(id: number, status: number) {
-  return put<void>(`/rule/${id}/status`, { status })
+export function updateRuleStatusApi(id: number, status: number) {
+  return request({
+    url: `/rule/${id}/status`,
+    method: 'put',
+    data: { status }
+  })
 }
 
-export function testRule(params: TestRuleParams) {
-  return post<{ matched: boolean; result: any }>('/rule/test', params)
+export function executeRuleApi(id: number, data?: Record<string, any>) {
+  return request({
+    url: `/rule/${id}/execute`,
+    method: 'post',
+    data
+  })
 }
 
-export function executeRule(ruleId: number, data: Record<string, any>) {
-  return post<void>(`/rule/${ruleId}/execute`, data)
+export function getRuleExecutionLogsApi(ruleId: number, params?: { page: number; size: number }) {
+  return request<{ list: RuleExecutionLog[]; total: number }>({
+    url: `/rule/${ruleId}/logs`,
+    method: 'get',
+    params
+  })
 }
 
-export function getRuleLogs(ruleId?: number) {
-  return get<PageResult<RuleExecutionLog>>('/rule/log', { ruleId })
+export function testRuleConditionsApi(conditions: RuleCondition[], testData: Record<string, any>) {
+  return request<{ result: boolean; matchedConditions: number[] }>({
+    url: '/rule/test-conditions',
+    method: 'post',
+    data: { conditions, testData }
+  })
+}
+
+export function getRuleStatisticsApi() {
+  return request<{
+    total: number
+    enabled: number
+    disabled: number
+    executionsToday: number
+    executionsSuccess: number
+    executionsFailed: number
+  }>({
+    url: '/rule/statistics',
+    method: 'get'
+  })
 }

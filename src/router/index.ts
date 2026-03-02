@@ -106,6 +106,17 @@ const asyncRoutes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/rule',
+    name: 'Rule',
+    component: () => import('@/views/rule/index.vue'),
+    meta: {
+      title: '规则引擎',
+      icon: 'el-icon-Cpu',
+      roles: ['admin'],
+      permissions: ['rule:list']
+    }
+  },
+  {
     path: '/settings',
     name: 'Settings',
     component: () => import('@/views/settings/index.vue'),

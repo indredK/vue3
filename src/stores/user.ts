@@ -96,7 +96,12 @@ export const useUserStore = defineStore('user', () => {
       'approval:task:list',
       'approval:task:approve',
       'approval:task:reject',
-      'approval:task:transfer'
+      'approval:task:transfer',
+      'rule:list',
+      'rule:add',
+      'rule:edit',
+      'rule:delete',
+      'rule:execute'
     ],
     createdAt: '2024-01-01 00:00:00'
   }
