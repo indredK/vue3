@@ -199,6 +199,17 @@ const asyncRoutes: RouteRecordRaw[] = [
           roles: ['admin', 'user'],
           permissions: ['notification:list']
         }
+      },
+      {
+        path: '/system-config',
+        name: 'SystemConfig',
+        component: () => import('@/views/system-config/index.vue'),
+        meta: {
+          title: '系统配置',
+          icon: 'el-icon-Tools',
+          roles: ['admin'],
+          permissions: ['system:config:list']
+        }
       }
     ]
   }
