@@ -210,6 +210,17 @@ const asyncRoutes: RouteRecordRaw[] = [
           roles: ['admin'],
           permissions: ['system:config:list']
         }
+      },
+      {
+        path: '/api',
+        name: 'Api',
+        component: () => import('@/views/api/index.vue'),
+        meta: {
+          title: 'API接口管理',
+          icon: 'el-icon-Connection',
+          roles: ['admin'],
+          permissions: ['system:api:list']
+        }
       }
     ]
   }
