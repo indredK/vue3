@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { loadAsyncRoutes } from '@/router'
+import { localCache } from '@/utils/cache'
 
 export interface User {
   id: number
@@ -138,6 +139,23 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function getUserInfo() {
+    interface CachedUserData {
+      user: User
+      permissions: string[]
+      roles: string[]
+      tenant: Tenant
+    }
+    
+    const cachedUser = localCache.get<CachedUserData>('userInfo')
+    if (cachedUser) {
+      userInfo.value = cachedUser.user
+      permissions.value = cachedUser.permissions
+      roles.value = cachedUser.roles
+      currentTenant.value = cachedUser.tenant
+      localStorage.setItem('tenantId', String(cachedUser.tenant.id))
+      return
+    }
+
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         userInfo.value = mockUserData
@@ -145,6 +163,14 @@ export const useUserStore = defineStore('user', () => {
         roles.value = mockUserData.roles
         currentTenant.value = mockTenant
         localStorage.setItem('tenantId', String(mockTenant.id))
+
+        localCache.set('userInfo', {
+          user: mockUserData,
+          permissions: mockUserData.permissions,
+          roles: mockUserData.roles,
+          tenant: mockTenant
+        }, 30 * 60 * 1000)
+
         resolve()
       }, 300)
     })
@@ -159,6 +185,7 @@ export const useUserStore = defineStore('user', () => {
     currentTenant.value = null
     localStorage.removeItem('token')
     localStorage.removeItem('tenantId')
+    localCache.delete('userInfo')
     router.push('/login')
   }
 
