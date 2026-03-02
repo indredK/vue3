@@ -4,10 +4,16 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import * as elementIcons from '@element-plus/icons-vue'
 
 const { t } = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
+
+const getIcon = (iconName?: unknown) => {
+  const name = (typeof iconName === 'string' ? iconName : '') || 'Menu'
+  return (elementIcons as any)[name.replace('el-icon-', '')] || elementIcons.Menu
+}
 
 const loginForm = reactive({
   username: 'admin',
@@ -42,7 +48,7 @@ const handleLogin = async () => {
     <div class="login-box">
       <div class="login-header">
         <div class="logo">
-          <el-icon :size="40" class="logo-icon"><element-icon-DataAnalysis /></el-icon>
+          <el-icon :size="40" class="logo-icon"><component :is="getIcon('el-icon-DataAnalysis')" /></el-icon>
           <h1>{{ t('layout.title') }}</h1>
         </div>
         <p class="subtitle">{{ t('layout.title') || 'Universal Asset Management Platform' }}</p>

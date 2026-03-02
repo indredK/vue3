@@ -18,6 +18,7 @@ const themeStore = useThemeStore()
 const isCollapse = ref(false)
 const activeMenu = ref('')
 const messageDropdownVisible = ref(false)
+const openedMenus = ref<string[]>([])
 
 const allRoutesList = computed(() => {
   const userRoles = userStore.userInfo?.roles || ['admin']
@@ -48,14 +49,32 @@ const getMenuPath = (parent: any, child: any): string => {
   return `/${parent.path}/${child.path}`
 }
 
+const handleMenuSelect = (key: string) => {
+  const parentPath = '/' + key.split('/')[1]
+  if (parentPath && parentPath !== '/') {
+    const currentIndex = openedMenus.value.indexOf(parentPath)
+    if (currentIndex === -1) {
+      openedMenus.value = [parentPath]
+    } else {
+      openedMenus.value = [parentPath]
+    }
+  }
+}
+
+const handleMenuClose = (index: string) => {
+  const i = openedMenus.value.indexOf(index)
+  if (i !== -1) {
+    openedMenus.value.splice(i, 1)
+  }
+}
+
 const recentNotifications = computed(() => {
   return notificationStore.notifications.slice(0, 5)
 })
 
-const switchLanguage = () => {
-  const newLocale = locale.value === 'zh-CN' ? 'en-US' : 'zh-CN'
-  locale.value = newLocale
-  localStorage.setItem('locale', newLocale)
+const switchLanguage = (lang: string) => {
+  locale.value = lang
+  localStorage.setItem('locale', lang)
 }
 
 const handleThemeChange = (command: string) => {
@@ -129,6 +148,16 @@ onUnmounted(() => {
 
 watch(() => route.path, (path) => {
   activeMenu.value = path
+  
+  const pathParts = path.split('/').filter(Boolean)
+  if (pathParts.length > 1) {
+    const parentPath = '/' + pathParts[0]
+    if (!openedMenus.value.includes(parentPath)) {
+      openedMenus.value = [parentPath]
+    }
+  } else {
+    openedMenus.value = []
+  }
 })
 
 const getIcon = (iconName?: unknown) => {
@@ -142,27 +171,31 @@ const getIcon = (iconName?: unknown) => {
     <el-container class="layout-container">
       <el-aside :width="isCollapse ? '64px' : '220px'" class="sidebar">
         <div class="logo">
-          <el-icon :size="24" class="logo-icon"><element-icon-DataAnalysis /></el-icon>
+          <el-icon :size="24" class="logo-icon"><component :is="getIcon('el-icon-DataAnalysis')" /></el-icon>
           <span v-show="!isCollapse" class="logo-text">{{ t('layout.title') }}</span>
         </div>
         
         <el-menu
           :default-active="activeMenu"
+          :default-openeds="openedMenus"
           :collapse="isCollapse"
           :collapse-transition="false"
+          :unique-opened="true"
           class="sidebar-menu"
           router
+          @select="handleMenuSelect"
+          @close="handleMenuClose"
         >
           <template v-for="item in allRoutesList" :key="String(item.path)">
             <el-menu-item v-if="!isSubMenu(item)" :index="String(item.path)">
               <el-icon><component :is="getIcon(item.meta?.icon)" /></el-icon>
-              <template #title>{{ item.meta?.title }}</template>
+              <template #title>{{ t(item.meta?.title as string) }}</template>
             </el-menu-item>
             
             <el-sub-menu v-else :index="String(item.path)">
               <template #title>
                 <el-icon><component :is="getIcon(item.meta?.icon)" /></el-icon>
-                <span>{{ item.meta?.title }}</span>
+                <span>{{ t(item.meta?.title as string) }}</span>
               </template>
               <el-menu-item
                 v-for="child in item.children"
@@ -170,7 +203,7 @@ const getIcon = (iconName?: unknown) => {
                 :index="getMenuPath(item, child)"
               >
                 <el-icon><component :is="getIcon(child.meta?.icon)" /></el-icon>
-                <template #title>{{ child.meta?.title }}</template>
+                <template #title>{{ t(child.meta?.title as string) }}</template>
               </el-menu-item>
             </el-sub-menu>
           </template>
@@ -181,8 +214,7 @@ const getIcon = (iconName?: unknown) => {
         <el-header class="header">
           <div class="header-left">
             <el-icon class="collapse-icon" @click="isCollapse = !isCollapse">
-              <element-icon-Fold v-if="!isCollapse" />
-              <element-icon-Expand v-else />
+              <component :is="getIcon(isCollapse ? 'el-icon-Expand' : 'el-icon-Fold')" />
             </el-icon>
           </div>
           
@@ -196,7 +228,7 @@ const getIcon = (iconName?: unknown) => {
               <template #reference>
                 <div class="message-icon-wrapper">
                   <el-badge :value="notificationStore.unreadCount" :hidden="notificationStore.unreadCount === 0" :max="99">
-                    <el-icon :size="20"><element-icon-Bell /></el-icon>
+                    <el-icon :size="20"><component :is="getIcon('el-icon-Bell')" /></el-icon>
                   </el-badge>
                 </div>
               </template>
@@ -217,10 +249,7 @@ const getIcon = (iconName?: unknown) => {
                   >
                     <div class="message-item-icon" :style="{ backgroundColor: getTypeColor(notification.type) }">
                       <el-icon>
-                        <element-icon-Check v-if="notification.type === 'approval'" />
-                        <element-icon-Cpu v-else-if="notification.type === 'rule'" />
-                        <element-icon-Bell v-else-if="notification.type === 'system'" />
-                        <element-icon-Megaphone v-else />
+                        <component :is="getIcon(notification.type === 'approval' ? 'el-icon-Check' : notification.type === 'rule' ? 'el-icon-Cpu' : notification.type === 'system' ? 'el-icon-Bell' : 'el-icon-Megaphone')" />
                       </el-icon>
                     </div>
                     <div class="message-item-content">
@@ -238,7 +267,7 @@ const getIcon = (iconName?: unknown) => {
             
             <el-dropdown @command="handleThemeChange">
               <span class="language-switch">
-                <el-icon><element-icon-Brush /></el-icon>
+                <el-icon><component :is="getIcon('el-icon-Brush')" /></el-icon>
               </span>
               <template #dropdown>
                 <el-dropdown-menu>
@@ -246,11 +275,11 @@ const getIcon = (iconName?: unknown) => {
                     <span style="font-weight: bold">主题模式</span>
                   </el-dropdown-item>
                   <el-dropdown-item command="light" :disabled="themeStore.mode === 'light'">
-                    <el-icon><element-icon-Sunny /></el-icon>
+                    <el-icon><component :is="getIcon('el-icon-Sunny')" /></el-icon>
                     浅色模式
                   </el-dropdown-item>
                   <el-dropdown-item command="dark" :disabled="themeStore.mode === 'dark'">
-                    <el-icon><element-icon-Moon /></el-icon>
+                    <el-icon><component :is="getIcon('el-icon-Moon')" /></el-icon>
                     深色模式
                   </el-dropdown-item>
                   <el-dropdown-item divided disabled>
@@ -284,11 +313,21 @@ const getIcon = (iconName?: unknown) => {
               </template>
             </el-dropdown>
             
-            <el-dropdown @command="switchLanguage">
+            <el-dropdown trigger="click" @command="switchLanguage">
               <span class="language-switch">
-                <el-icon><element-icon-Language /></el-icon>
+                <el-icon><component :is="getIcon('el-icon-Language')" /></el-icon>
                 <span>{{ locale === 'zh-CN' ? '中文' : 'EN' }}</span>
               </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="zh-CN" :disabled="locale === 'zh-CN'">
+                    中文
+                  </el-dropdown-item>
+                  <el-dropdown-item command="en-US" :disabled="locale === 'en-US'">
+                    English
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
             </el-dropdown>
             
             <el-dropdown @command="handleLogout">
@@ -299,7 +338,7 @@ const getIcon = (iconName?: unknown) => {
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="logout">
-                    <el-icon><element-icon-SwitchButton /></el-icon>
+                    <el-icon><component :is="getIcon('el-icon-SwitchButton')" /></el-icon>
                     {{ t('layout.logout') }}
                   </el-dropdown-item>
                 </el-dropdown-menu>

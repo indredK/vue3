@@ -6,7 +6,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     name: 'Dashboard',
     component: () => import('@/views/dashboard/index.vue'),
     meta: {
-      title: '数据看板',
+      title: 'menu.dashboard',
       icon: 'el-icon-DataAnalysis',
       roles: ['admin', 'user']
     }
@@ -16,7 +16,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     name: 'Device',
     component: () => import('@/views/device/index.vue'),
     meta: {
-      title: '设备管理',
+      title: 'menu.device',
       icon: 'el-icon-Monitor',
       roles: ['admin', 'user'],
       permissions: ['device:list']
@@ -25,7 +25,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
   {
     path: '/asset',
     meta: {
-      title: '资产管理',
+      title: 'menu.asset',
       icon: 'el-icon-Box',
       roles: ['admin', 'user']
     },
@@ -35,7 +35,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'AssetType',
         component: () => import('@/views/asset-type/index.vue'),
         meta: {
-          title: '资产类型',
+          title: 'menu.assetType',
           icon: 'el-icon-Grid',
           roles: ['admin'],
           permissions: ['asset:type:list']
@@ -46,7 +46,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'Asset',
         component: () => import('@/views/asset/index.vue'),
         meta: {
-          title: '资产列表',
+          title: 'menu.assetList',
           icon: 'el-icon-List',
           roles: ['admin', 'user'],
           permissions: ['asset:list']
@@ -59,7 +59,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     name: 'Order',
     component: () => import('@/views/order/index.vue'),
     meta: {
-      title: '订单管理',
+      title: 'menu.order',
       icon: 'el-icon-Document',
       roles: ['admin', 'user'],
       permissions: ['order:list']
@@ -68,7 +68,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
   {
     path: '/approval',
     meta: {
-      title: '审批管理',
+      title: 'menu.approval',
       icon: 'el-icon-Check',
       roles: ['admin', 'user']
     },
@@ -78,7 +78,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'ApprovalFlow',
         component: () => import('@/views/approval/flow.vue'),
         meta: {
-          title: '审批流程',
+          title: 'menu.approvalFlow',
           icon: 'el-icon-Share',
           roles: ['admin'],
           permissions: ['approval:flow:list']
@@ -89,7 +89,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'ApprovalTask',
         component: () => import('@/views/approval/task.vue'),
         meta: {
-          title: '待办任务',
+          title: 'menu.approvalTask',
           icon: 'el-icon-Tickets',
           roles: ['admin', 'user'],
           permissions: ['approval:task:list']
@@ -102,7 +102,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     name: 'Rule',
     component: () => import('@/views/rule/index.vue'),
     meta: {
-      title: '规则引擎',
+      title: 'menu.rule',
       icon: 'el-icon-Cpu',
       roles: ['admin'],
       permissions: ['rule:list']
@@ -113,7 +113,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     name: 'Notification',
     component: () => import('@/views/notification/index.vue'),
     meta: {
-      title: '消息中心',
+      title: 'menu.notification',
       icon: 'el-icon-Bell',
       roles: ['admin', 'user'],
       permissions: ['notification:list']
@@ -122,7 +122,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
   {
     path: '/system',
     meta: {
-      title: '系统管理',
+      title: 'menu.system',
       icon: 'el-icon-Setting',
       roles: ['admin']
     },
@@ -132,7 +132,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'User',
         component: () => import('@/views/system/user/index.vue'),
         meta: {
-          title: '用户管理',
+          title: 'menu.user',
           icon: 'el-icon-User',
           roles: ['admin'],
           permissions: ['system:user:list']
@@ -143,7 +143,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'Role',
         component: () => import('@/views/system/role/index.vue'),
         meta: {
-          title: '角色管理',
+          title: 'menu.role',
           icon: 'el-icon-Menu',
           roles: ['admin'],
           permissions: ['system:role:list']
@@ -154,7 +154,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'Permission',
         component: () => import('@/views/system/permission/index.vue'),
         meta: {
-          title: '权限管理',
+          title: 'menu.permission',
           icon: 'el-icon-Lock',
           roles: ['admin'],
           permissions: ['system:permission:list']
@@ -165,7 +165,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'Tenant',
         component: () => import('@/views/system/tenant/index.vue'),
         meta: {
-          title: '租户管理',
+          title: 'menu.tenant',
           icon: 'el-icon-OfficeBuilding',
           roles: ['admin'],
           permissions: ['system:tenant:list']
@@ -176,7 +176,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
   {
     path: '/operation',
     meta: {
-      title: '运维中心',
+      title: 'menu.operation',
       icon: 'el-icon-Tools',
       roles: ['admin']
     },
@@ -186,7 +186,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'AuditLog',
         component: () => import('@/views/audit-log/index.vue'),
         meta: {
-          title: '审计日志',
+          title: 'menu.auditLog',
           icon: 'el-icon-Document',
           roles: ['admin'],
           permissions: ['system:audit:list']
@@ -197,7 +197,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'SystemConfig',
         component: () => import('@/views/system-config/index.vue'),
         meta: {
-          title: '系统配置',
+          title: 'menu.systemConfig',
           icon: 'el-icon-Set',
           roles: ['admin'],
           permissions: ['system:config:list']
@@ -208,7 +208,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
         name: 'Api',
         component: () => import('@/views/api/index.vue'),
         meta: {
-          title: 'API管理',
+          title: 'menu.api',
           icon: 'el-icon-Connection',
           roles: ['admin'],
           permissions: ['system:api:list']
@@ -221,7 +221,7 @@ export const asyncRoutes: RouteRecordRaw[] = [
     name: 'Settings',
     component: () => import('@/views/settings/index.vue'),
     meta: {
-      title: '个人设置',
+      title: 'menu.settings',
       icon: 'el-icon-UserFilled',
       roles: ['admin', 'user']
     }
