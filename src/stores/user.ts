@@ -20,6 +20,7 @@ export const useUserStore = defineStore('user', () => {
   const userInfo = shallowRef<UserInfo | null>(null)
   const permissions = ref<string[]>([])
   const roles = ref<string[]>([])
+  const routesLoaded = ref(false)  // 添加路由加载标记
   
   const mockUserData: UserInfo = {
     id: 1,
@@ -75,6 +76,7 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = null
     permissions.value = []
     roles.value = []
+    routesLoaded.value = false  // 重置路由加载标记
     localStorage.removeItem('token')
     router.push('/login')
   }
@@ -88,7 +90,10 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function initRoutes() {
-    await loadAsyncRoutes()
+    if (!routesLoaded.value) {
+      await loadAsyncRoutes()
+      routesLoaded.value = true
+    }
   }
 
   return {
@@ -96,6 +101,7 @@ export const useUserStore = defineStore('user', () => {
     userInfo,
     permissions,
     roles,
+    routesLoaded,
     login,
     getUserInfo,
     logout,

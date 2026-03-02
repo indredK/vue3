@@ -176,6 +176,7 @@ export const router = createRouter({
 router.beforeEach(async (to, _from, next) => {
   const userStore = useUserStore()
   
+  // 如果访问登录页
   if (to.path === '/login') {
     if (userStore.token) {
       next('/dashboard')
@@ -185,23 +186,41 @@ router.beforeEach(async (to, _from, next) => {
     return
   }
   
+  // 如果没有 token，跳转到登录页
   if (!userStore.token) {
     next('/login')
     return
   }
   
+  // 如果有 token 但没有用户信息，获取用户信息并加载路由
   if (!userStore.userInfo) {
     try {
       await userStore.getUserInfo()
       await userStore.initRoutes()
+      // 重新导航到目标路由，确保动态路由已加载
       next({ ...to, replace: true })
     } catch (error) {
       await userStore.logout()
       next('/login')
     }
-  } else {
-    next()
+    return
   }
+  
+  // 如果有用户信息但路由未加载（刷新页面的情况）
+  if (!userStore.routesLoaded) {
+    try {
+      await userStore.initRoutes()
+      // 重新导航到目标路由
+      next({ ...to, replace: true })
+    } catch (error) {
+      await userStore.logout()
+      next('/login')
+    }
+    return
+  }
+  
+  // 正常导航
+  next()
 })
 
 export function resetRouter() {
