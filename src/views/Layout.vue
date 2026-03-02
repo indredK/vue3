@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user'
 import { useNotificationStore } from '@/stores/notification'
 import { useThemeStore, type ThemeColor } from '@/stores/theme'
+import { filterAsyncRoutes, asyncRoutes } from '@/router'
 import * as elementIcons from '@element-plus/icons-vue'
 
 const { t, locale } = useI18n()
@@ -18,40 +19,34 @@ const isCollapse = ref(false)
 const activeMenu = ref('')
 const messageDropdownVisible = ref(false)
 
-const sidebarRoutes = computed(() => {
-  const routes = router.getRoutes()
+const allRoutesList = computed(() => {
+  const userRoles = userStore.userInfo?.roles || ['admin']
+  const userPermissions = userStore.userInfo?.permissions || []
   
-  const menuRoutes = routes.filter((r: any) => {
-    if (r.path === '/login' || r.path === '/') return false
-    if (r.meta?.hidden) return false
-    return true
-  })
+  const filteredRoutes = filterAsyncRoutes(asyncRoutes, userRoles, userPermissions)
+  console.log('Menu routes after permission filter:', filteredRoutes.map((r: any) => ({ 
+    path: r.path, 
+    hasChildren: !!r.children, 
+    childrenCount: r.children?.length,
+    meta: r.meta
+  })))
   
-  const groupedRoutes = menuRoutes.map((route: any) => {
-    if (route.children && route.children.length > 0) {
-      return route
-    }
-    
-    const parts = route.path.split('/').filter(Boolean)
-    if (parts.length === 1) {
-      const children = menuRoutes.filter((r: any) => {
-        const rParts = r.path.split('/').filter(Boolean)
-        return rParts.length > 1 && rParts[0] === parts[0]
-      })
-      
-      if (children.length > 0) {
-        return {
-          ...route,
-          children: children
-        }
-      }
-    }
-    
-    return route
-  })
-  
-  return groupedRoutes
+  return filteredRoutes
 })
+
+const isSubMenu = (item: any) => {
+  return item.children && item.children.length > 0
+}
+
+const getMenuPath = (parent: any, child: any): string => {
+  if (child.path.startsWith('/')) {
+    return child.path
+  }
+  if (parent.path.startsWith('/')) {
+    return `${parent.path}/${child.path}`
+  }
+  return `/${parent.path}/${child.path}`
+}
 
 const recentNotifications = computed(() => {
   return notificationStore.notifications.slice(0, 5)
@@ -140,16 +135,12 @@ const getIcon = (iconName?: unknown) => {
   const name = (typeof iconName === 'string' ? iconName : '') || 'Menu'
   return (elementIcons as any)[name.replace('el-icon-', '')] || elementIcons.Menu
 }
-
-const getTitle = (title?: unknown): string => {
-  return typeof title === 'string' ? title : ''
-}
 </script>
 
 <template>
   <div class="common-layout">
     <el-container class="layout-container">
-      <el-aside :width="isCollapse ? '64px' : '200px'" class="sidebar">
+      <el-aside :width="isCollapse ? '64px' : '220px'" class="sidebar">
         <div class="logo">
           <el-icon :size="24" class="logo-icon"><element-icon-DataAnalysis /></el-icon>
           <span v-show="!isCollapse" class="logo-text">{{ t('layout.title') }}</span>
@@ -162,24 +153,24 @@ const getTitle = (title?: unknown): string => {
           class="sidebar-menu"
           router
         >
-          <template v-for="item in sidebarRoutes" :key="String(item.path)">
-            <el-menu-item v-if="!item.children || item.children.length === 0" :index="String(item.path)">
+          <template v-for="item in allRoutesList" :key="String(item.path)">
+            <el-menu-item v-if="!isSubMenu(item)" :index="String(item.path)">
               <el-icon><component :is="getIcon(item.meta?.icon)" /></el-icon>
-              <template #title>{{ t(getTitle(item.meta?.title)) }}</template>
+              <template #title>{{ item.meta?.title }}</template>
             </el-menu-item>
             
             <el-sub-menu v-else :index="String(item.path)">
               <template #title>
                 <el-icon><component :is="getIcon(item.meta?.icon)" /></el-icon>
-                <span>{{ t(getTitle(item.meta?.title)) }}</span>
+                <span>{{ item.meta?.title }}</span>
               </template>
               <el-menu-item
                 v-for="child in item.children"
                 :key="String(child.path)"
-                :index="String(child.path)"
+                :index="getMenuPath(item, child)"
               >
                 <el-icon><component :is="getIcon(child.meta?.icon)" /></el-icon>
-                <template #title>{{ t(getTitle(child.meta?.title)) }}</template>
+                <template #title>{{ child.meta?.title }}</template>
               </el-menu-item>
             </el-sub-menu>
           </template>
