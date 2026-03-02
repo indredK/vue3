@@ -24,6 +24,7 @@ html, body {
   font-size: 14px;
   color: var(--text-color-primary);
   background: var(--bg-color-page);
+  overflow-x: hidden;
 }
 
 #app {
@@ -62,4 +63,10 @@ html, body {
 .el-button--primary:hover {
   background-color: #66b1ff;
   border-color: #66b1ff;
+}
+
+.el-dialog__body {
+  max-height: 60vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
