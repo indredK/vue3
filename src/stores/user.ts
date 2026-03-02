@@ -87,7 +87,16 @@ export const useUserStore = defineStore('user', () => {
       'asset:type:list',
       'asset:type:add',
       'asset:type:edit',
-      'asset:type:delete'
+      'asset:type:delete',
+      'approval:list',
+      'approval:flow:list',
+      'approval:flow:add',
+      'approval:flow:edit',
+      'approval:flow:delete',
+      'approval:task:list',
+      'approval:task:approve',
+      'approval:task:reject',
+      'approval:task:transfer'
     ],
     createdAt: '2024-01-01 00:00:00'
   }

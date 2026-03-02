@@ -75,6 +75,37 @@ const asyncRoutes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/approval',
+    meta: {
+      title: '审批管理',
+      icon: 'el-icon-Check',
+      roles: ['admin', 'user'],
+      permissions: ['approval:list']
+    },
+    children: [
+      {
+        path: 'flow',
+        name: 'ApprovalFlow',
+        component: () => import('@/views/approval/flow.vue'),
+        meta: {
+          title: '审批流程配置',
+          roles: ['admin'],
+          permissions: ['approval:flow:list']
+        }
+      },
+      {
+        path: 'task',
+        name: 'ApprovalTask',
+        component: () => import('@/views/approval/task.vue'),
+        meta: {
+          title: '审批任务',
+          roles: ['admin', 'user'],
+          permissions: ['approval:task:list']
+        }
+      }
+    ]
+  },
+  {
     path: '/settings',
     name: 'Settings',
     component: () => import('@/views/settings/index.vue'),

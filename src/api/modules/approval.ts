@@ -1,117 +1,150 @@
-import { get, post, del, put } from '@/api/axios'
-import type { PageResult, PageParams } from '@/types/common'
+import request from '@/utils/request'
+import type { ApprovalFlow, ApprovalNode, ApprovalInstance, ApprovalTask, ApprovalRecord, ApprovalForm } from '@/types/approval'
 
-export interface ApprovalFlow {
-  id: number
-  name: string
-  code: string
-  description?: string
-  type: string
-  nodes: ApprovalNode[]
-  status: number
-  createdAt: string
-  updatedAt?: string
+export interface ApprovalFlowListParams {
+  page: number
+  size: number
+  keyword?: string
+  flowType?: string
+  status?: number
 }
 
-export interface ApprovalNode {
-  id: number
-  flowId: number
-  name: string
-  type: 'start' | 'approver' | 'condition' | 'end'
-  nodeType: 'serial' | 'parallel'
-  approvers: Approver[]
-  conditions?: ApprovalCondition[]
-  sort: number
+export interface ApprovalFlowListResponse {
+  list: ApprovalFlow[]
+  total: number
+  page: number
+  size: number
 }
 
-export interface Approver {
-  id: number
-  type: 'user' | 'role' | 'department'
-  value: number
-  name: string
+export function getApprovalFlowListApi(params: ApprovalFlowListParams) {
+  return request<ApprovalFlowListResponse>({
+    url: '/approval/flow/list',
+    method: 'get',
+    params
+  })
 }
 
-export interface ApprovalCondition {
-  field: string
-  operator: string
-  value: any
+export function getApprovalFlowDetailApi(id: number) {
+  return request<ApprovalFlow>({
+    url: `/approval/flow/${id}`,
+    method: 'get'
+  })
 }
 
-export interface ApprovalTask {
-  id: number
-  flowId: number
-  flowName: string
-  instanceId: number
-  businessId: number
-  businessType: string
-  nodeId: number
-  nodeName: string
-  status: number
-  assigneeId?: number
-  assigneeName?: string
-  createdAt: string
-  completedAt?: string
+export function createApprovalFlowApi(data: Partial<ApprovalFlow>) {
+  return request<ApprovalFlow>({
+    url: '/approval/flow',
+    method: 'post',
+    data
+  })
 }
 
-export interface ApprovalRecord {
-  id: number
-  taskId: number
-  nodeId: number
-  nodeName: string
-  approverId: number
-  approverName: string
-  action: 'approve' | 'reject' | 'transfer'
-  comment?: string
-  status: number
-  createdAt: string
+export function updateApprovalFlowApi(id: number, data: Partial<ApprovalFlow>) {
+  return request<ApprovalFlow>({
+    url: `/approval/flow/${id}`,
+    method: 'put',
+    data
+  })
 }
 
-export interface ApprovalParams {
-  action: 'approve' | 'reject' | 'transfer'
-  comment?: string
-  transferToId?: number
+export function deleteApprovalFlowApi(id: number) {
+  return request({
+    url: `/approval/flow/${id}`,
+    method: 'delete'
+  })
 }
 
-export function getFlowList(params?: PageParams) {
-  return get<PageResult<ApprovalFlow>>('/approval/flow/list', params)
+export interface ApprovalTaskListParams {
+  page: number
+  size: number
+  status?: string
 }
 
-export function getFlowDetail(id: number) {
-  return get<ApprovalFlow>(`/approval/flow/${id}`)
+export interface ApprovalTaskListResponse {
+  pendingList: ApprovalTask[]
+  completedList: ApprovalTask[]
+  total: number
 }
 
-export function createFlow(data: Partial<ApprovalFlow>) {
-  return post<ApprovalFlow>('/approval/flow', data)
+export function getApprovalTaskListApi(params: ApprovalTaskListParams) {
+  return request<ApprovalTaskListResponse>({
+    url: '/approval/task/list',
+    method: 'get',
+    params
+  })
 }
 
-export function updateFlow(data: Partial<ApprovalFlow>) {
-  return put<ApprovalFlow>(`/approval/flow/${data.id}`, data)
+export function getPendingTasksApi() {
+  return request<ApprovalTask[]>({
+    url: '/approval/task/pending',
+    method: 'get'
+  })
 }
 
-export function deleteFlow(id: number) {
-  return del<void>(`/approval/flow/${id}`)
+export function getCompletedTasksApi() {
+  return request<ApprovalTask[]>({
+    url: '/approval/task/completed',
+    method: 'get'
+  })
 }
 
-export function getTaskList(params?: { status?: number; type?: string }) {
-  return get<PageResult<ApprovalTask>>('/approval/task/list', params)
+export function getApprovalTaskDetailApi(taskId: number) {
+  return request<{ task: ApprovalTask; instance: ApprovalInstance; records: ApprovalRecord[] }>({
+    url: `/approval/task/${taskId}/detail`,
+    method: 'get'
+  })
 }
 
-export function getPendingTasks() {
-  return get<ApprovalTask[]>('/approval/task/pending')
+export function submitApprovalApi(data: ApprovalForm) {
+  return request({
+    url: '/approval/task/submit',
+    method: 'post',
+    data
+  })
 }
 
-export function getTaskDetail(id: number) {
-  return get<ApprovalTask>(`/approval/task/${id}`)
+export function approveTaskApi(taskId: number, comment?: string) {
+  return request({
+    url: `/approval/task/${taskId}/approve`,
+    method: 'post',
+    data: { comment }
+  })
 }
 
-export function approveTask(taskId: number, params: ApprovalParams) {
-  return post<void>(`/approval/task/${taskId}/approve`, params)
+export function rejectTaskApi(taskId: number, comment: string) {
+  return request({
+    url: `/approval/task/${taskId}/reject`,
+    method: 'post',
+    data: { comment }
+  })
 }
 
-export function getApprovalRecords(businessId: number, businessType: string) {
-  return get<ApprovalRecord[]>(`/approval/record/${businessType}/${businessId}`)
+export function transferTaskApi(taskId: number, targetUserId: number, targetUserName: string, comment?: string) {
+  return request({
+    url: `/approval/task/${taskId}/transfer`,
+    method: 'post',
+    data: { targetUserId, targetUserName, comment }
+  })
 }
 
-export function submitForApproval(businessId: number, businessType: string, flowId: number) {
-  return post<void>('/approval/submit', { businessId, businessType, flowId })
+export function getApprovalRecordsApi(instanceId: number) {
+  return request<ApprovalRecord[]>({
+    url: `/approval/instance/${instanceId}/records`,
+    method: 'get'
+  })
+}
+
+export function startApprovalProcessApi(flowId: number, businessId: number, businessType: string, title: string) {
+  return request<ApprovalInstance>({
+    url: '/approval/instance/start',
+    method: 'post',
+    data: { flowId, businessId, businessType, title }
+  })
+}
+
+export function cancelApprovalInstanceApi(instanceId: number) {
+  return request({
+    url: `/approval/instance/${instanceId}/cancel`,
+    method: 'post'
+  })
 }
