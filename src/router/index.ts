@@ -9,6 +9,11 @@ const constantRoutes: RouteRecordRaw[] = [
     name: 'Login',
     component: () => import('@/views/login/index.vue'),
     meta: { title: '登录', hidden: true }
+  },
+  {
+    path: '/',
+    redirect: '/login',
+    meta: { hidden: true }
   }
 ]
 
@@ -169,37 +174,55 @@ const asyncRoutes: RouteRecordRaw[] = [
 ]
 
 export const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: constantRoutes
 })
 
 router.beforeEach(async (to, _from, next) => {
   const userStore = useUserStore()
   
+  console.log('[Router Guard] 导航到:', to.path)
+  console.log('[Router Guard] Token:', userStore.token ? '存在' : '不存在')
+  console.log('[Router Guard] UserInfo:', userStore.userInfo ? '存在' : '不存在')
+  console.log('[Router Guard] RoutesLoaded:', userStore.routesLoaded)
+  
   // 如果访问登录页
   if (to.path === '/login') {
     if (userStore.token) {
+      console.log('[Router Guard] 已登录，跳转到 dashboard')
       next('/dashboard')
     } else {
+      console.log('[Router Guard] 未登录，显示登录页')
       next()
     }
     return
   }
   
+  // 如果访问根路径且已登录，跳转到 dashboard
+  if (to.path === '/' && userStore.token) {
+    console.log('[Router Guard] 根路径已登录，跳转到 dashboard')
+    next('/dashboard')
+    return
+  }
+  
   // 如果没有 token，跳转到登录页
   if (!userStore.token) {
+    console.log('[Router Guard] 无 token，跳转到登录页')
     next('/login')
     return
   }
   
   // 如果有 token 但没有用户信息，获取用户信息并加载路由
   if (!userStore.userInfo) {
+    console.log('[Router Guard] 获取用户信息并加载路由')
     try {
       await userStore.getUserInfo()
       await userStore.initRoutes()
+      console.log('[Router Guard] 路由加载完成，重新导航')
       // 重新导航到目标路由，确保动态路由已加载
       next({ ...to, replace: true })
     } catch (error) {
+      console.error('[Router Guard] 加载失败:', error)
       await userStore.logout()
       next('/login')
     }
@@ -208,11 +231,14 @@ router.beforeEach(async (to, _from, next) => {
   
   // 如果有用户信息但路由未加载（刷新页面的情况）
   if (!userStore.routesLoaded) {
+    console.log('[Router Guard] 刷新页面，重新加载路由')
     try {
       await userStore.initRoutes()
+      console.log('[Router Guard] 路由重新加载完成')
       // 重新导航到目标路由
       next({ ...to, replace: true })
     } catch (error) {
+      console.error('[Router Guard] 重新加载失败:', error)
       await userStore.logout()
       next('/login')
     }
@@ -220,6 +246,7 @@ router.beforeEach(async (to, _from, next) => {
   }
   
   // 正常导航
+  console.log('[Router Guard] 正常导航')
   next()
 })
 

@@ -90,9 +90,15 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function initRoutes() {
+    console.log('[User Store] initRoutes 被调用')
+    console.log('[User Store] routesLoaded:', routesLoaded.value)
     if (!routesLoaded.value) {
+      console.log('[User Store] 开始加载路由')
       await loadAsyncRoutes()
       routesLoaded.value = true
+      console.log('[User Store] 路由加载完成')
+    } else {
+      console.log('[User Store] 路由已加载，跳过')
     }
   }
 
