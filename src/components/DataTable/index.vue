@@ -1,92 +1,219 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useUserStore } from '@/stores/user'
 
-interface Props {
-  data: any[]
-  columns: TableColumn[]
-  loading?: boolean
-  total?: number
-  page?: number
-  pageSize?: number
-  showPagination?: boolean
-}
-
-interface TableColumn {
+export interface TableColumn {
   prop: string
   label: string
   width?: string | number
   minWidth?: string | number
-  fixed?: boolean | 'left' | 'right'
+  type?: 'selection' | 'index' | 'expand'
   sortable?: boolean
-  formatter?: (row: any, column: any, cellValue: any) => any
-  slot?: string
+  formatter?: (row: any, column: any, cellValue: any) => string
+  slots?: {
+    default?: string
+    header?: string
+  }
+  showOverflowTooltip?: boolean
+  align?: 'left' | 'center' | 'right'
+  fixed?: boolean | 'left' | 'right'
 }
 
-const props = withDefaults(defineProps<Props>(), {
+export interface TableAction {
+  code: string
+  label: string
+  type?: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'text'
+  size?: 'large' | 'default' | 'small'
+  icon?: string
+  disabled?: boolean
+  divided?: boolean
+  confirm?: string
+}
+
+export interface DataTableProps {
+  columns: TableColumn[]
+  data: any[]
+  loading?: boolean
+  selection?: boolean
+  index?: boolean
+  expand?: boolean
+  actions?: TableAction[]
+  actionWidth?: string | number
+  actionFixed?: boolean | 'left' | 'right'
+  pagination?: boolean
+  page?: number
+  pageSize?: number
+  pageSizes?: number[]
+  total?: number
+  loadingText?: string
+  emptyText?: string
+  rowKey?: string
+  defaultSort?: { prop: string; order: string }
+}
+
+const props = withDefaults(defineProps<DataTableProps>(), {
   loading: false,
-  total: 0,
+  selection: false,
+  index: false,
+  expand: false,
+  actions: () => [],
+  actionWidth: '180',
+  actionFixed: 'right',
+  pagination: true,
   page: 1,
-  pageSize: 20,
-  showPagination: true
+  pageSize: 10,
+  pageSizes: () => [10, 20, 50, 100],
+  total: 0,
+  loadingText: '加载中...',
+  emptyText: '暂无数据',
+  rowKey: 'id'
 })
 
 const emit = defineEmits<{
+  (e: 'selection-change', selection: any[]): void
+  (e: 'sort-change', sort: { prop: string; order: string }): void
   (e: 'page-change', page: number): void
   (e: 'size-change', size: number): void
-  (e: 'selection-change', selection: any[]): void
+  (e: 'action', action: TableAction, row: any): void
 }>()
 
-const currentPage = ref(props.page)
-const currentPageSize = ref(props.pageSize)
+const userStore = useUserStore()
+
+const visibleColumns = computed(() => {
+  return props.columns.filter(col => col.type !== 'selection' && col.type !== 'index' && col.type !== 'expand')
+})
+
+const visibleActions = computed(() => {
+  return props.actions.filter(action => {
+    if (!action.code) return true
+    return userStore.hasPermission(action.code)
+  })
+})
+
+const handleSelectionChange = (selection: any[]) => {
+  emit('selection-change', selection)
+}
+
+const handleSortChange = ({ prop, order }: { prop: string; order: string }) => {
+  emit('sort-change', { prop, order })
+}
 
 const handlePageChange = (page: number) => {
-  currentPage.value = page
   emit('page-change', page)
 }
 
 const handleSizeChange = (size: number) => {
-  currentPageSize.value = size
   emit('size-change', size)
+}
+
+const handleAction = (action: TableAction, row: any) => {
+  emit('action', action, row)
 }
 </script>
 
 <template>
   <div class="data-table">
     <el-table
-      v-loading="loading"
       :data="data"
-      border
+      :loading="loading"
+      :loading-text="loadingText"
+      :empty-text="emptyText"
+      :row-key="rowKey"
+      :default-sort="defaultSort"
       stripe
-      @selection-change="(val: any[]) => emit('selection-change', val)"
+      border
+      @selection-change="handleSelectionChange"
+      @sort-change="handleSortChange"
     >
+      <el-table-column v-if="selection" type="selection" width="50" />
+      <el-table-column v-if="index" type="index" label="序号" width="60" align="center" />
+      <el-table-column v-if="expand" type="expand">
+        <template #default="{ row }">
+          <slot name="expand" :row="row" />
+        </template>
+      </el-table-column>
+
+      <template v-for="column in visibleColumns" :key="column.prop">
+        <el-table-column
+          :prop="column.prop"
+          :label="column.label"
+          :width="column.width"
+          :min-width="column.minWidth"
+          :sortable="column.sortable"
+          :show-overflow-tooltip="column.showOverflowTooltip"
+          :align="column.align || 'left'"
+          :fixed="column.fixed"
+        >
+          <template #header>
+            <slot :name="`header-${column.prop}`" :column="column">
+              {{ column.label }}
+            </slot>
+          </template>
+          <template #default="{ row }">
+            <slot :name="column.prop" :row="row" :column="column">
+              <template v-if="column.formatter">
+                {{ column.formatter(row, column, row[column.prop]) }}
+              </template>
+              <template v-else>
+                {{ row[column.prop] }}
+              </template>
+            </slot>
+          </template>
+        </el-table-column>
+      </template>
+
       <el-table-column
-        v-if="columns.some(c => c.slot === 'selection')"
-        type="selection"
-        width="55"
-      />
-      <el-table-column
-        v-for="col in columns"
-        :key="col.prop"
-        :prop="col.prop"
-        :label="col.label"
-        :width="col.width"
-        :min-width="col.minWidth"
-        :fixed="col.fixed"
-        :sortable="col.sortable"
+        v-if="visibleActions.length > 0"
+        label="操作"
+        :width="actionWidth"
+        :fixed="actionFixed"
+        align="center"
       >
-        <template v-if="col.slot" #default="scope">
-          <slot :name="col.slot" :row="scope.row" :$index="scope.$index" />
+        <template #default="{ row }">
+          <slot name="actions" :row="row">
+            <div class="action-buttons">
+              <template v-for="(action, index) in visibleActions" :key="action.code || index">
+                <el-divider v-if="action.divided && index > 0" direction="vertical" />
+                <el-tooltip
+                  v-if="action.disabled"
+                  :content="action.label"
+                  placement="top"
+                >
+                  <span>
+                    <el-button
+                      :type="action.type || 'primary'"
+                      :size="action.size || 'small'"
+                      :link="action.type === 'text'"
+                      :disabled="action.disabled"
+                    >
+                      {{ action.label }}
+                    </el-button>
+                  </span>
+                </el-tooltip>
+                <el-button
+                  v-else
+                  :type="action.type || 'primary'"
+                  :size="action.size || 'small'"
+                  :link="action.type === 'text'"
+                  @click="handleAction(action, row)"
+                >
+                  {{ action.label }}
+                </el-button>
+              </template>
+            </div>
+          </slot>
         </template>
       </el-table-column>
     </el-table>
 
-    <div v-if="showPagination" class="pagination-wrapper">
+    <div v-if="pagination" class="pagination-container">
       <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="currentPageSize"
+        :current-page="page"
+        :page-size="pageSize"
+        :page-sizes="pageSizes"
         :total="total"
-        :page-sizes="[10, 20, 50, 100]"
         layout="total, sizes, prev, pager, next, jumper"
+        background
         @current-change="handlePageChange"
         @size-change="handleSizeChange"
       />
@@ -99,7 +226,15 @@ const handleSizeChange = (size: number) => {
   width: 100%;
 }
 
-.pagination-wrapper {
+.action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.pagination-container {
   display: flex;
   justify-content: flex-end;
   margin-top: 16px;
