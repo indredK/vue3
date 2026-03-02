@@ -1,44 +1,37 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter, useRoute, RouterView } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user'
+import { useNotificationStore } from '@/stores/notification'
 import * as elementIcons from '@element-plus/icons-vue'
 
 const { t, locale } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const notificationStore = useNotificationStore()
 
 const isCollapse = ref(false)
 const activeMenu = ref('')
+const messageDropdownVisible = ref(false)
 
 const sidebarRoutes = computed(() => {
   const routes = router.getRoutes()
-  console.log('All routes:', routes.map(r => ({ path: r.path, hasChildren: !!r.children?.length })))
   
-  // 筛选出应该显示的顶级菜单路由
   const menuRoutes = routes.filter((r: any) => {
-    // 排除登录页和根路由
     if (r.path === '/login' || r.path === '/') return false
-    // 排除被标记为隐藏的
     if (r.meta?.hidden) return false
     return true
   })
   
-  console.log('Menu routes:', menuRoutes.map(r => ({ path: r.path, hasChildren: !!r.children?.length })))
-  
-  // 直接使用路由中已经定义好的 children
   const groupedRoutes = menuRoutes.map((route: any) => {
-    // 如果有 children，直接返回
     if (route.children && route.children.length > 0) {
       return route
     }
     
-    // 如果没有 children，检查是否有其他路由以其为父路径
     const parts = route.path.split('/').filter(Boolean)
     if (parts.length === 1) {
-      // 顶级路径，查找所有以该路径开头的子路由
       const children = menuRoutes.filter((r: any) => {
         const rParts = r.path.split('/').filter(Boolean)
         return rParts.length > 1 && rParts[0] === parts[0]
@@ -55,9 +48,11 @@ const sidebarRoutes = computed(() => {
     return route
   })
   
-  console.log('Grouped routes:', groupedRoutes.map(r => ({ path: r.path, hasChildren: !!r.children?.length })))
-  
   return groupedRoutes
+})
+
+const recentNotifications = computed(() => {
+  return notificationStore.notifications.slice(0, 5)
 })
 
 const switchLanguage = () => {
@@ -68,6 +63,42 @@ const switchLanguage = () => {
 
 const handleLogout = async () => {
   await userStore.logout()
+}
+
+const handleMessageClick = () => {
+  router.push('/notification')
+}
+
+const handleMessageDetail = (notification: any) => {
+  messageDropdownVisible.value = false
+  if (notification.relatedUrl) {
+    router.push(notification.relatedUrl)
+  }
+}
+
+const getTypeColor = (type: string) => {
+  const colorMap: Record<string, string> = {
+    approval: '#409eff',
+    rule: '#67c23a',
+    system: '#e6a23c',
+    announcement: '#909399'
+  }
+  return colorMap[type] || '#909399'
+}
+
+const formatTime = (time: string) => {
+  const now = new Date()
+  const date = new Date(time)
+  const diff = now.getTime() - date.getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (minutes < 1) return '刚刚'
+  if (minutes < 60) return `${minutes}分钟前`
+  if (hours < 24) return `${hours}小时前`
+  if (days < 7) return `${days}天前`
+  return time.substring(0, 10)
 }
 
 onMounted(async () => {
@@ -82,6 +113,13 @@ onMounted(async () => {
   }
   
   activeMenu.value = route.path
+
+  await notificationStore.fetchNotifications()
+  notificationStore.startPolling(30000)
+})
+
+onUnmounted(() => {
+  notificationStore.stopPolling()
 })
 
 watch(() => route.path, (path) => {
@@ -148,6 +186,55 @@ const getTitle = (title?: unknown): string => {
           </div>
           
           <div class="header-right">
+            <el-popover
+              v-model:visible="messageDropdownVisible"
+              placement="bottom-end"
+              :width="360"
+              trigger="click"
+            >
+              <template #reference>
+                <div class="message-icon-wrapper">
+                  <el-badge :value="notificationStore.unreadCount" :hidden="notificationStore.unreadCount === 0" :max="99">
+                    <el-icon :size="20"><element-icon-Bell /></el-icon>
+                  </el-badge>
+                </div>
+              </template>
+              <div class="message-dropdown">
+                <div class="message-dropdown-header">
+                  <span class="message-dropdown-title">消息通知</span>
+                  <el-button type="primary" link size="small" @click="handleMessageClick">
+                    查看全部
+                  </el-button>
+                </div>
+                <div class="message-list">
+                  <div
+                    v-for="notification in recentNotifications"
+                    :key="notification.id"
+                    class="message-item"
+                    :class="{ 'unread': !notification.isRead }"
+                    @click="handleMessageDetail(notification)"
+                  >
+                    <div class="message-item-icon" :style="{ backgroundColor: getTypeColor(notification.type) }">
+                      <el-icon>
+                        <element-icon-Check v-if="notification.type === 'approval'" />
+                        <element-icon-Cpu v-else-if="notification.type === 'rule'" />
+                        <element-icon-Bell v-else-if="notification.type === 'system'" />
+                        <element-icon-Megaphone v-else />
+                      </el-icon>
+                    </div>
+                    <div class="message-item-content">
+                      <div class="message-item-title">{{ notification.title }}</div>
+                      <div class="message-item-time">{{ formatTime(notification.createdAt) }}</div>
+                    </div>
+                    <div v-if="!notification.isRead" class="message-item-dot" />
+                  </div>
+                  <div v-if="recentNotifications.length === 0" class="message-empty">
+                    暂无消息
+                  </div>
+                </div>
+              </div>
+            </el-popover>
+            
             <el-dropdown @command="switchLanguage">
               <span class="language-switch">
                 <el-icon><element-icon-Language /></el-icon>
@@ -279,6 +366,20 @@ const getTitle = (title?: unknown): string => {
   gap: 20px;
 }
 
+.message-icon-wrapper {
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-icon-wrapper:hover {
+  background: #f5f7fa;
+}
+
 .language-switch {
   display: flex;
   align-items: center;
@@ -303,6 +404,89 @@ const getTitle = (title?: unknown): string => {
 .username {
   font-size: 14px;
   color: #333;
+}
+
+.message-dropdown {
+  margin: -12px;
+}
+
+.message-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.message-dropdown-title {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.message-list {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.message-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.message-item:hover {
+  background: #f5f7fa;
+}
+
+.message-item.unread {
+  background: #ecf5ff;
+}
+
+.message-item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.message-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.message-item-title {
+  font-size: 14px;
+  color: #303133;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-item-time {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+.message-item-dot {
+  width: 8px;
+  height: 8px;
+  background: #f56c6c;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.message-empty {
+  padding: 40px;
+  text-align: center;
+  color: #909399;
 }
 
 .main-content {

@@ -188,6 +188,17 @@ const asyncRoutes: RouteRecordRaw[] = [
           roles: ['admin'],
           permissions: ['system:audit:list']
         }
+      },
+      {
+        path: '/notification',
+        name: 'Notification',
+        component: () => import('@/views/notification/index.vue'),
+        meta: {
+          title: '消息中心',
+          icon: 'el-icon-Bell',
+          roles: ['admin', 'user'],
+          permissions: ['notification:list']
+        }
       }
     ]
   }

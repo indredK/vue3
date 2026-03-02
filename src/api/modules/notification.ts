@@ -1,64 +1,91 @@
-import { get, put, del } from '@/api/axios'
-import type { PageResult, PageParams } from '@/types/common'
+import request from '@/utils/request'
+import type { Notification, NotificationDetail, NotificationPreferences, NotificationStats } from '@/types/notification'
 
-export interface Notification {
-  id: number
-  type: 'approval' | 'rule' | 'system' | 'announcement'
-  title: string
-  content: string
-  senderId?: number
-  senderName?: string
-  receiverId: number
-  isRead: boolean
-  readAt?: string
-  extraData?: Record<string, any>
-  createdAt: string
-}
-
-export interface NotificationQueryParams extends PageParams {
+export interface NotificationListParams {
+  page: number
+  size: number
   type?: string
   isRead?: boolean
+  keyword?: string
 }
 
-export interface NotificationPreference {
-  id: number
-  userId: number
-  types: {
-    approval: { enabled: boolean; methods: string[] }
-    rule: { enabled: boolean; methods: string[] }
-    system: { enabled: boolean; methods: string[] }
-    announcement: { enabled: boolean; methods: string[] }
-  }
+export interface NotificationListResponse {
+  list: Notification[]
+  total: number
+  page: number
+  size: number
 }
 
-export function getNotificationList(params: NotificationQueryParams) {
-  return get<PageResult<Notification>>('/notification/list', params)
+export function getNotificationListApi(params: NotificationListParams) {
+  return request<NotificationListResponse>({
+    url: '/notification/list',
+    method: 'get',
+    params
+  })
 }
 
-export function getNotificationDetail(id: number) {
-  return get<Notification>(`/notification/${id}`)
+export function getNotificationDetailApi(id: number) {
+  return request<NotificationDetail>({
+    url: `/notification/${id}`,
+    method: 'get'
+  })
 }
 
-export function getUnreadCount() {
-  return get<{ count: number }>('/notification/unread/count')
+export function markAsReadApi(id: number) {
+  return request({
+    url: `/notification/${id}/read`,
+    method: 'put'
+  })
 }
 
-export function markAsRead(id: number) {
-  return put<void>(`/notification/${id}/read`)
+export function markAllAsReadApi() {
+  return request({
+    url: '/notification/read-all',
+    method: 'put'
+  })
 }
 
-export function markAllAsRead() {
-  return put<void>('/notification/read/all')
+export function deleteNotificationApi(id: number) {
+  return request({
+    url: `/notification/${id}`,
+    method: 'delete'
+  })
 }
 
-export function deleteNotification(id: number) {
-  return del<void>(`/notification/${id}`)
+export function getNotificationStatsApi() {
+  return request<NotificationStats>({
+    url: '/notification/stats',
+    method: 'get'
+  })
 }
 
-export function getNotificationPreference() {
-  return get<NotificationPreference>('/notification/preference')
+export function getNotificationPreferencesApi() {
+  return request<NotificationPreferences>({
+    url: '/notification/preferences',
+    method: 'get'
+  })
 }
 
-export function updateNotificationPreference(preference: Partial<NotificationPreference>) {
-  return put<NotificationPreference>('/notification/preference', preference)
+export function updateNotificationPreferencesApi(data: Partial<NotificationPreferences>) {
+  return request({
+    url: '/notification/preferences',
+    method: 'put',
+    data
+  })
+}
+
+export function sendNotificationApi(data: {
+  userIds: number[]
+  type: string
+  title: string
+  content: string
+  relatedId?: number
+  relatedType?: string
+  relatedUrl?: string
+}) {
+  return request({
+    url: '/notification/send',
+    method: 'post',
+    data
+  })
 }
